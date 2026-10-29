@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vulnscope"
+version = "0.1.0"
+description = "Free, open-source, cross-platform vulnerability assessment framework"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "requests>=2.31,<3",
+    "cryptography>=42.0,<44",
+    "dnspython>=2.6,<3",
+    "Flask>=3.0,<4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<9"]
+
+[project.scripts]
+vulnscope = "vulnscope.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["vulnscope*"]
+
+[tool.setuptools.package-data]
+vulnscope = ["dashboard/static/*"]
