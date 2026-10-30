@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VulnScope</title>
+<style>
+:root{
+  --bg:#0c1210; --panel:#121a17; --panel2:#17201c; --border:#243229; --text:#dce8e1; --muted:#7f9589;
+  --accent:#5fd3a6; --accent-dim:#2d6b53; --critical:#e4495a; --high:#e08a3c; --medium:#d9b44a; --low:#4f8ff0; --info:#6f7f78;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace; --sans: "Inter", -apple-system, Segoe UI, sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5}
+a{color:var(--accent);text-decoration:none}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+.side{background:var(--panel);border-right:1px solid var(--border);padding:20px 14px;position:sticky;top:0;height:100vh}
+.brand{font-family:var(--mono);font-size:15px;letter-spacing:.02em;color:var(--accent);margin-bottom:4px}
+.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+nav{margin-top:28px;display:flex;flex-direction:column;gap:2px}
+nav button{all:unset;cursor:pointer;padding:9px 10px;border-radius:6px;color:var(--muted);font-size:13px}
+nav button:hover{background:var(--panel2);color:var(--text)}
+nav button.active{background:var(--accent-dim);color:#0c1210;font-weight:600}
+main{padding:26px 34px;max-width:1100px}
+h1{font-size:19px;margin:0 0 4px;font-weight:600}
+.sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px}
+.stat .n{font-family:var(--mono);font-size:24px}
+.stat .l{color:var(--muted);font-size:12px;margin-top:2px}
+.sev-critical{color:var(--critical)}.sev-high{color:var(--high)}.sev-medium{color:var(--medium)}
+.sev-low{color:var(--low)}.sev-info{color:var(--info)}.sev-unknown{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:16px}
+.card h2{font-size:14px;margin:0 0 12px;color:var(--muted);font-weight:600}
+input[type=text],select,textarea{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-family:var(--sans);font-size:13px;width:100%}
+label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>div{flex:1;min-width:160px}
+button.primary{all:unset;cursor:pointer;background:var(--accent);color:#0a1210;font-weight:600;padding:10px 16px;border-radius:6px;font-size:13px;margin-top:14px;display:inline-block}
+button.primary:hover{opacity:.9}
+button.ghost{all:unset;cursor:pointer;color:var(--muted);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:12px}
+button.ghost:hover{color:var(--text);border-color:var(--accent-dim)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:6px 10px;border-bottom:1px solid var(--border)}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:var(--panel2)}
+.badge{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;display:inline-block}
+.badge.critical{background:rgba(228,73,90,.15);color:var(--critical)}
+.badge.high{background:rgba(224,138,60,.15);color:var(--high)}
+.badge.medium{background:rgba(217,180,74,.15);color:var(--medium)}
+.badge.low{background:rgba(79,143,240,.15);color:var(--low)}
+.badge.info{background:rgba(111,127,120,.15);color:var(--info)}
+.finding-detail{display:none;background:var(--panel2);padding:14px;border-radius:6px;margin-top:6px;font-size:12.5px}
+.finding-detail.open{display:block}
+.finding-detail dt{color:var(--muted);margin-top:8px}
+.finding-detail dd{margin:2px 0 0}
+.progress{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin:10px 0}
+.progress>div{height:100%;background:var(--accent)}
+.pill{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:2px 8px}
+.empty{color:var(--muted);font-size:13px;padding:20px 0}
+.warn{background:rgba(224,138,60,.1);border:1px solid var(--accent-dim);border-radius:6px;padding:10px 12px;font-size:12.5px;color:var(--text);margin-bottom:12px}
+.plugin-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;font-family:var(--mono);font-size:12px}
+.plugin-item{padding:6px 8px;border:1px solid var(--border);border-radius:5px;color:var(--muted)}
+.plugin-item.ok{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand">VulnScope<small>local assessment framework</small></div>
+    <nav id="nav">
+      <button data-view="overview" class="active">Overview</button>
+      <button data-view="scan">New scan</button>
+      <button data-view="history">Scan history</button>
+      <button data-view="intel">CVE intelligence</button>
+      <button data-view="plugins">Plugins</button>
+      <button data-view="diagnostics">Diagnostics</button>
+    </nav>
+  </aside>
+  <main id="main"></main>
+</div>
+<script>
+const api = (path, opts) => fetch('/api' + path, opts).then(r => r.json().then(d => ({ok: r.ok, data: d})));
+const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SEV = ['critical','high','medium','low','info','unknown'];
+let current = 'overview';
+let pollTimer = null;
+
+function setActive(view){
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+}
+
+async function renderOverview(){
+  const {data} = await api('/overview');
+  const {data: scans} = await api('/scans?limit=5');
+  const counts = data.counts.severity || {};
+  const intel = data.intel || {};
+  let html = `<h1>Overview</h1><p class="sub">VulnScope ${esc(data.version)} · ${data.counts.scans} scan${data.counts.scans===1?'':'s'} recorded</p>`;
+  html += '<div class="grid">';
+  for (const sev of SEV) {
+    html += `<div class="stat"><div class="n sev-${sev}">${counts[sev]||0}</div><div class="l">${sev}</div></div>`;
+  }
+  html += '</div>';
+  html += `<div class="card"><h2>Vulnerability intelligence database</h2>
+    <p class="sub" style="margin-bottom:0">${intel.cves||0} CVE records · ${intel.kev||0} known-exploited entries · ${intel.osv_cached||0} OSV lookups cached</p>
+    <p class="sub">Last NVD sync: ${intel.nvd_last_sync ? new Date(intel.nvd_last_sync*1000).toLocaleString() : 'never'} — go to CVE intelligence to update.</p></div>`;
+  html += '<div class="card"><h2>Recent scans</h2>';
+  if (!scans.length) html += '<div class="empty">No scans yet. Start one from "New scan".</div>';
+  else {
+    html += '<table><tr><th>Target</th><th>Status</th><th>Profile</th><th>Findings</th><th></th></tr>';
+    for (const s of scans) {
+      html += `<tr><td>${esc(s.target)}</td><td>${esc(s.status)}</td><td>${esc(s.profile)}</td><td>${(s.summary&&s.summary.total)||'-'}</td>
+        <td><a href="#" onclick="openScan('${s.id}');return false;">view</a></td></tr>`;
+    }
+    html += '</table>';
+  }
+  html += '</div>';
+  document.getElementById('main').innerHTML = html;
+}
+
+async function renderScanForm(){
+  let html = `<h1>New scan</h1><p class="sub">Only assess targets you are authorized to test.</p>
+  <div class="card">
+    <label>Target</label>
+    <input type="text" id="f-target" placeholder="https://example.com, 192.168.1.0/24, or a local source path">
+    <div class="row">
+      <div><label>Profile</label>
+        <select id="f-profile"><option value="passive">Passive</option><option value="standard" selected>Standard</option><option value="comprehensive">Comprehensive</option></select>
+      </div>
+      <div><label>Target type (optional)</label>
+        <select id="f-type"><option value="">Auto-detect</option><option value="url">URL</option><option value="host">Host / CIDR</option><option value="source">Local source directory</option></select>
+      </div>
+    </div>
+    <label>Additional authorized scope (comma-separated hosts/CIDRs, optional)</label>
+    <input type="text" id="f-scope" placeholder="">
+    <label><input type="checkbox" id="f-private" style="width:auto"> Allow scanning private/internal network addresses</label>
+    <label style="margin-top:14px"><input type="checkbox" id="f-ack" style="width:auto"> I confirm I am authorized to assess this target</label>
+    <div id="f-error" class="warn" style="display:none"></div>
+    <button class="primary" onclick="startScan()">Start scan</button>
+  </div>
+  <div id="live"></div>`;
+  document.getElementById('main').innerHTML = html;
+}
+
+async function startScan(){
+  const target = document.getElementById('f-target').value.trim();
+  const ack = document.getElementById('f-ack').checked;
+  const err = document.getElementById('f-error');
+  err.style.display = 'none';
+  if (!target) { err.textContent = 'Enter a target.'; err.style.display='block'; return; }
+  if (!ack) { err.textContent = 'You must confirm authorization before scanning.'; err.style.display='block'; return; }
+  const scope = document.getElementById('f-scope').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const body = {
+    target, profile: document.getElementById('f-profile').value,
+    target_type: document.getElementById('f-type').value || null,
+    allow_private: document.getElementById('f-private').checked, scope, authorized: true,
+  };
+  const {ok, data} = await api('/scan', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  if (!ok) { err.textContent = data.error || 'Could not start scan.'; err.style.display='block'; return; }
+  openScan(data.scan_id);
+}
+
+async function openScan(id){
+  current = 'scan-live:' + id;
+  setActive('');
+  await renderScanLive(id);
+}
+
+async function renderScanLive(id){
+  const {data: scan} = await api('/scans/' + id);
+  const {data: findings} = await api('/scans/' + id + '/findings');
+  const pct = Math.round((scan.progress||0)*100);
+  let html = `<h1>Scan ${esc(id)}</h1><p class="sub">${esc(scan.target)} · profile ${esc(scan.profile)} · ${esc(scan.status)}</p>`;
+  if (scan.status === 'running') {
+    html += `<div class="card"><div class="progress"><div style="width:${pct}%"></div></div>
+      <p class="sub">${pct}% — ${esc(scan.current||'')}</p>
+      <button class="ghost" onclick="cancelScan('${id}')">Cancel scan</button></div>`;
+  } else {
+    const s = scan.summary || {};
+    const sev = s.severity || {};
+    html += '<div class="grid">';
+    for (const k of SEV) html += `<div class="stat"><div class="n sev-${k}">${sev[k]||0}</div><div class="l">${k}</div></div>`;
+    html += '</div>';
+    html += `<div class="row" style="margin-bottom:16px">
+      <button class="ghost" onclick="window.open('/api/scans/${id}/export?format=html')">Export HTML</button>
+      <button class="ghost" onclick="window.open('/api/scans/${id}/export?format=json')">Export JSON</button>
+      <button class="ghost" onclick="window.open('/api/scans/${id}/export?format=csv')">Export CSV</button>
+    </div>`;
+  }
+  html += '<div class="card"><h2>Findings</h2>';
+  if (!findings.length) html += '<div class="empty">No findings yet.</div>';
+  else {
+    html += '<table><tr><th>Severity</th><th>Title</th><th>Status</th><th>CVE</th></tr>';
+    findings.forEach((f, i) => {
+      html += `<tr style="cursor:pointer" onclick="toggleFinding(${i})"><td><span class="badge ${f.severity}">${f.severity}</span></td>
+        <td>${esc(f.title)}${f.known_exploited?' <span class="pill">KEV</span>':''}</td><td>${esc(f.status)}</td><td>${esc((f.cve||[]).join(', '))}</td></tr>
+        <tr id="fd-${i}"><td colspan="4"><div class="finding-detail" id="fdd-${i}">
+          <dl>
+            <dt>Evidence</dt><dd>${esc(f.evidence)}</dd>
+            <dt>Impact</dt><dd>${esc(f.impact)||'—'}</dd>
+            <dt>Remediation</dt><dd>${esc(f.remediation)}</dd>
+            <dt>Rule basis</dt><dd>${esc(f.rule_basis)}</dd>
+            <dt>Confidence</dt><dd>${esc(f.confidence)}</dd>
+            ${f.notes?`<dt>Notes</dt><dd>${esc(f.notes)}</dd>`:''}
+            ${f.location?`<dt>Location</dt><dd>${esc(f.location)}</dd>`:''}
+            ${(f.references&&f.references.length)?`<dt>References</dt><dd>${f.references.map(r=>`<a href="${esc(r)}" target="_blank">${esc(r)}</a>`).join('<br>')}</dd>`:''}
+          </dl>
+        </div></td></tr>`;
+    });
+    html += '</table>';
+  }
+  html += '</div>';
+  document.getElementById('main').innerHTML = html;
+  window._findings = findings;
+  if (scan.status === 'running') {
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(() => { if (current === 'scan-live:' + id) renderScanLive(id); }, 1200);
+  }
+}
+function toggleFinding(i){ document.getElementById('fdd-'+i).classList.toggle('open'); }
+async function cancelScan(id){ await api('/scans/' + id + '/cancel', {method:'POST'}); }
+
+async function renderHistory(){
+  const {data: scans} = await api('/scans?limit=100');
+  let html = '<h1>Scan history</h1><div class="card">';
+  if (!scans.length) html += '<div class="empty">No scans yet.</div>';
+  else {
+    html += '<table><tr><th>Target</th><th>Status</th><th>Profile</th><th>Started</th><th>Findings</th><th></th></tr>';
+    for (const s of scans) {
+      html += `<tr><td>${esc(s.target)}</td><td>${esc(s.status)}</td><td>${esc(s.profile)}</td>
+        <td>${new Date(s.started*1000).toLocaleString()}</td><td>${(s.summary&&s.summary.total)??'-'}</td>
+        <td><a href="#" onclick="openScan('${s.id}');return false;">view</a> ·
+        <a href="#" onclick="deleteScan('${s.id}');return false;">delete</a></td></tr>`;
+    }
+    html += '</table>';
+  }
+  html += '</div>';
+  document.getElementById('main').innerHTML = html;
+}
+async function deleteScan(id){ if (!confirm('Delete this scan and its findings?')) return; await api('/scans/'+id, {method:'DELETE'}); renderHistory(); }
+
+async function renderIntel(){
+  const {data: status} = await api('/intel/status');
+  let html = `<h1>CVE intelligence</h1>
+  <div class="card"><h2>Local database</h2>
+    <p class="sub">${status.cves||0} CVE records · ${status.kev||0} known-exploited · freshness: ${esc(status.freshness)}</p>
+    <button class="primary" onclick="updateIntel()">Synchronize now</button>
+    <div id="intel-status" class="sub" style="margin-top:8px"></div>
+  </div>
+  <div class="card"><h2>Search</h2>
+    <div class="row"><div><input type="text" id="q-text" placeholder="CVE ID or keyword"></div>
+    <div><input type="text" id="q-product" placeholder="product name (optional)"></div>
+    <div><input type="text" id="q-version" placeholder="version (optional)"></div></div>
+    <button class="primary" onclick="searchIntel()">Search</button>
+    <div id="intel-results" style="margin-top:14px"></div>
+  </div>`;
+  document.getElementById('main').innerHTML = html;
+}
+async function updateIntel(){
+  document.getElementById('intel-status').textContent = 'Synchronization started in the background; this can take a while on first run.';
+  await api('/intel/update', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+}
+async function searchIntel(){
+  const q = document.getElementById('q-text').value;
+  const product = document.getElementById('q-product').value;
+  const version = document.getElementById('q-version').value;
+  const params = new URLSearchParams({q, product, version});
+  const {data} = await api('/intel/search?' + params.toString());
+  let html = '<table><tr><th>CVE</th><th>Severity</th><th>Score</th><th>Description</th></tr>';
+  for (const c of data) html += `<tr><td>${esc(c.id)}${c.known_exploited?' <span class="pill">KEV</span>':''}</td><td><span class="badge ${c.severity}">${c.severity}</span></td><td>${c.cvss_score??'-'}</td><td>${esc((c.description||'').slice(0,160))}</td></tr>`;
+  html += '</table>';
+  document.getElementById('intel-results').innerHTML = html;
+}
+
+async function renderPlugins(){
+  const {data} = await api('/plugins');
+  let html = '<h1>Scanner plugins</h1><div class="card"><div class="plugin-list">';
+  for (const p of data) html += `<div class="plugin-item ${p.available?'ok':''}">${p.id}<br><span style="color:var(--muted);font-size:11px">${p.target_types.join(',')}${p.available?'':' — '+esc(p.unavailable_reason)}</span></div>`;
+  html += '</div></div>';
+  document.getElementById('main').innerHTML = html;
+}
+
+async function renderDiagnostics(){
+  const {data} = await api('/diagnostics');
+  let html = `<h1>Platform diagnostics</h1><div class="card">
+    <p class="sub">OS: ${esc(data.os)} (${esc(data.platform)})<br>Python ${esc(data.python)} · ${esc(data.arch)}<br>
+    Home: ${esc(data.home)}<br>Disk free: ${(data.disk.free/1e9).toFixed(1)} GB</p>
+    <h2>Modules</h2><div class="plugin-list">`;
+  for (const [k,v] of Object.entries(data.modules)) html += `<div class="plugin-item ${v?'ok':''}">${k}</div>`;
+  html += '</div><h2 style="margin-top:14px">External tools</h2><div class="plugin-list">';
+  for (const [k,v] of Object.entries(data.binaries)) html += `<div class="plugin-item ${v?'ok':''}">${k}</div>`;
+  html += '</div></div>';
+  document.getElementById('main').innerHTML = html;
+}
+
+const VIEWS = {overview: renderOverview, scan: renderScanForm, history: renderHistory, intel: renderIntel, plugins: renderPlugins, diagnostics: renderDiagnostics};
+document.getElementById('nav').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  current = btn.dataset.view;
+  setActive(current);
+  VIEWS[current]();
+});
+renderOverview();
+</script>
+</body>
+</html>
