@@ -6,8 +6,8 @@
 
 ## Steps
 ```bash
-git clone https://github.com/<your-username>/vulnscope.git
-cd vulnscope
+git clone https://github.com/NIGHTWALKEROFC/Vulnscope.git
+cd Vulnscope
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
