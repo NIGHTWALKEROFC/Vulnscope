@@ -9,8 +9,8 @@
 1. Open PowerShell.
 2. Clone or download the repository, then enter it:
    ```powershell
-   git clone https://github.com/<your-username>/vulnscope.git
-   cd vulnscope
+   git clone https://github.com/NIGHTWALKEROFC/Vulnscope.git
+   cd Vulnscope
    ```
 3. Create and activate a virtual environment:
    ```powershell
