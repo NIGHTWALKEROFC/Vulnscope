@@ -41,8 +41,8 @@ NVD, OSV.dev and the CISA Known Exploited Vulnerabilities catalog.
 ## Quick start
 
 ```bash
-git clone https://github.com/<your-username>/vulnscope.git
-cd vulnscope
+git clone https://github.com/NIGHTWALKEROFC/Vulnscope.git
+cd Vulnscope
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
 pip install -e .
