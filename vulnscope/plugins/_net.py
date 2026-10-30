@@ -1,0 +1,62 @@
+COMMON_PORTS = [
+    21, 22, 23, 25, 53, 69, 80, 110, 111, 119, 123, 135, 137, 138, 139, 143, 161, 162, 179, 194,
+    389, 443, 445, 465, 500, 512, 513, 514, 515, 520, 587, 593, 631, 636, 873, 902, 989, 990, 993, 995,
+    1080, 1098, 1099, 1194, 1433, 1434, 1521, 1723, 1883, 1900, 2049, 2082, 2083, 2086, 2087, 2095, 2096,
+    2181, 2222, 2375, 2376, 2379, 2483, 2484, 2601, 3000, 3128, 3268, 3269, 3306, 3389, 3690, 4000, 4040,
+    4369, 4445, 4567, 4848, 5000, 5044, 5060, 5061, 5222, 5223, 5269, 5351, 5353, 5432, 5555, 5601, 5631,
+    5672, 5900, 5901, 5984, 5985, 5986, 6000, 6379, 6443, 6660, 6667, 6881, 7000, 7001, 7077, 7199, 7474,
+    7777, 8000, 8008, 8009, 8020, 8042, 8069, 8080, 8081, 8086, 8087, 8088, 8089, 8090, 8091, 8161, 8200,
+    8222, 8333, 8443, 8444, 8500, 8529, 8545, 8761, 8778, 8848, 8880, 8888, 8983, 9000, 9001, 9042, 9043,
+    9060, 9080, 9090, 9092, 9100, 9140, 9160, 9200, 9300, 9418, 9443, 9500, 9999, 10000, 10250, 10255,
+    11211, 15672, 16379, 18080, 20000, 24800, 25565, 27017, 27018, 28017, 32400, 37777, 44818, 47808, 50000,
+    50070, 50100, 51820,
+]
+
+SERVICE_NAMES = {
+    21: "ftp", 22: "ssh", 23: "telnet", 25: "smtp", 53: "dns", 69: "tftp", 80: "http", 110: "pop3",
+    111: "rpcbind", 119: "nntp", 123: "ntp", 135: "msrpc", 137: "netbios-ns", 138: "netbios-dgm",
+    139: "netbios-ssn", 143: "imap", 161: "snmp", 179: "bgp", 389: "ldap", 443: "https", 445: "smb",
+    465: "smtps", 500: "isakmp", 512: "exec", 513: "login", 514: "shell", 515: "printer", 520: "rip",
+    587: "submission", 593: "http-rpc-epmap", 631: "ipp", 636: "ldaps", 873: "rsync", 902: "vmware-auth",
+    989: "ftps-data", 990: "ftps", 993: "imaps", 995: "pop3s", 1080: "socks", 1098: "rmi", 1099: "rmi-registry",
+    1194: "openvpn", 1433: "mssql", 1521: "oracle", 1723: "pptp", 1883: "mqtt", 1900: "upnp", 2049: "nfs",
+    2181: "zookeeper", 2222: "ssh-alt", 2375: "docker", 2376: "docker-tls", 2379: "etcd-client", 2483: "oracle-tls",
+    3000: "http-dev", 3128: "squid", 3268: "ldap-gc", 3306: "mysql", 3389: "rdp", 3690: "svn", 4369: "epmd",
+    4443: "https-alt", 4848: "glassfish-admin", 5000: "http-dev", 5044: "logstash", 5060: "sip", 5222: "xmpp",
+    5269: "xmpp-server", 5353: "mdns", 5432: "postgresql", 5555: "android-debug", 5601: "kibana", 5672: "amqp",
+    5900: "vnc", 5901: "vnc-1", 5984: "couchdb", 5985: "winrm", 5986: "winrm-https", 6379: "redis", 6443: "k8s-api",
+    6667: "irc", 7001: "weblogic", 7077: "spark", 7199: "cassandra-jmx", 7474: "neo4j", 8000: "http-alt",
+    8008: "http-alt", 8009: "ajp13", 8020: "hdfs", 8069: "odoo", 8080: "http-proxy", 8081: "http-alt",
+    8086: "influxdb", 8088: "hadoop-rm", 8090: "http-alt", 8091: "couchbase", 8161: "activemq-console",
+    8200: "vault", 8333: "bitcoin", 8443: "https-alt", 8500: "consul", 8529: "arangodb", 8545: "ethereum-rpc",
+    8761: "eureka", 8888: "http-alt", 8983: "solr", 9000: "http-alt", 9042: "cassandra", 9092: "kafka",
+    9100: "printer-pjl", 9200: "elasticsearch", 9300: "elasticsearch-transport", 9418: "git", 9443: "https-alt",
+    10000: "webmin", 10250: "kubelet", 11211: "memcached", 15672: "rabbitmq-mgmt", 16379: "redis-sentinel",
+    25565: "minecraft", 27017: "mongodb", 32400: "plex", 50070: "hdfs-namenode",
+}
+
+VULNERABLE_SERVICES = {
+    "telnet": ("high", "Telnet transmits credentials and data in cleartext.", ["CWE-319"]),
+    "ftp": ("medium", "Plain FTP transmits credentials in cleartext; check for anonymous access.", ["CWE-319"]),
+    "rsync": ("medium", "Unauthenticated rsync daemons can expose or overwrite files.", ["CWE-306"]),
+    "vnc": ("high", "VNC often uses weak authentication and unencrypted transport.", ["CWE-308"]),
+    "docker": ("critical", "An exposed Docker API without TLS allows full host compromise.", ["CWE-306"]),
+    "etcd-client": ("critical", "Unauthenticated etcd exposes cluster secrets and configuration.", ["CWE-306"]),
+    "memcached": ("high", "Memcached without authentication can leak cached data and be used for UDP amplification.", ["CWE-306"]),
+    "redis": ("high", "Redis without authentication allows full data access and can enable remote code execution via module loading or cron abuse.", ["CWE-306"]),
+    "mongodb": ("high", "MongoDB without authentication exposes all data.", ["CWE-306"]),
+    "elasticsearch": ("high", "Elasticsearch without authentication exposes indexed data.", ["CWE-306"]),
+    "winrm": ("medium", "Exposed WinRM can allow remote command execution if credentials are weak.", ["CWE-306"]),
+    "rdp": ("medium", "Internet-facing RDP is a common ransomware entry point; ensure network-level authentication and patching.", ["CWE-306"]),
+    "k8s-api": ("critical", "An exposed Kubernetes API server without authentication allows full cluster compromise.", ["CWE-306"]),
+    "kubelet": ("critical", "An exposed kubelet API can allow arbitrary command execution on the node.", ["CWE-306"]),
+    "consul": ("high", "Exposed Consul API can leak service configuration and secrets.", ["CWE-306"]),
+    "vault": ("high", "Exposed Vault API should always require authentication; verify seal and ACL status.", ["CWE-306"]),
+    "smb": ("medium", "SMB exposed to the internet is a common ransomware and worm vector.", ["CWE-306"]),
+    "rpcbind": ("medium", "RPC portmapper exposure aids service enumeration and some legacy exploits.", ["CWE-200"]),
+}
+
+NO_AUTH_PROBES = {
+    "redis": (b"PING\r\n", b"+PONG"),
+    "memcached": (b"version\r\n", b"VERSION"),
+}
