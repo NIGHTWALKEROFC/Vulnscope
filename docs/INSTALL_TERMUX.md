@@ -12,8 +12,8 @@ storage, and does not require root access.
 pkg update && pkg upgrade
 pkg install python git
 pip install --upgrade pip
-git clone https://github.com/<your-username>/vulnscope.git
-cd vulnscope
+git clone https://github.com/NIGHTWALKEROFC/Vulnscope.git
+cd Vulnscope
 pip install -e .
 vulnscope check
 ```
